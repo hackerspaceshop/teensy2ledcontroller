@@ -22,7 +22,7 @@ void turn_on()
 {
   
  Serial.println("turn_on() called"); 
- set_all(Color(80,80,80)); 
+ set_all(CRGB(80,80,80)); 
  strip_show();
 }
 
@@ -35,7 +35,7 @@ void fast_fadeout()
   
   for(int i=0;i<80;i+=15)
    {
-    set_all(Color(80-i,80-i,80-i));
+    set_all(CRGB(80-i,80-i,80-i));
     strip_show();
    } 
    
@@ -54,18 +54,18 @@ void sparkle()
 {
   
 
-    for (int i=0; i <strip.numPixels(); i++) {
-      strip.setPixelColor(i, Color(50,100,100) );
+    for (int i=0; i <NUM_LEDS; i++) {
+      strip_setcolorpixel(i, CRGB(50,100,100) );
     } 
   
 
   // get one random pixel from outline
-    int pxl=random(0,strip.numPixels());
+    int pxl=random(0,NUM_LEDS);
   
 
   
   
-      strip.setPixelColor(pxl, Color(200,255,255));  
+      strip_setcolorpixel(pxl, CRGB(200,255,255));  
       strip_show();   // write all the pixels out   
   
    delay_break(80);
@@ -104,8 +104,8 @@ void kitt(int wait)
    
 
  
- for (int i=0; i < strip.numPixels(); i++) {
-      strip.setPixelColor(i, gc());
+ for (int i=0; i < NUM_LEDS; i++) {
+      strip_setcolorpixel(i, gc());
       if(rcv) return;
       strip_show();
       delay_break(wait);
@@ -113,9 +113,9 @@ void kitt(int wait)
   }
 
 
- for (int i=strip.numPixels(); i>=0; i--) {
-      strip.setPixelColor(i, gc());
-      if(rcv) return;
+ for (int i=NUM_LEDS; i>=0; i--) {
+      strip_setcolorpixel(i, gc());
+     // if(rcv) return;
       strip_show();
       delay_break(wait);
       all_off();
@@ -176,7 +176,7 @@ void suspend_glow(int rx, int gx, int bx, int cutoff)
 
 
 
-   set_all(Color(r,g,b));
+   set_all(CRGB(r,g,b));
    strip_show();
 
   }
@@ -190,7 +190,7 @@ void suspend_glow(int rx, int gx, int bx, int cutoff)
    if(gx>0){ if(i<gx) g=i; } 
    if(bx>0){ if(i<bx) b=i; }    
     
-   set_all(Color(r,g,b));
+   set_all(CRGB(r,g,b));
    strip_show();
 
   }
@@ -204,8 +204,8 @@ void suspend_glow(int rx, int gx, int bx, int cutoff)
 
 void all_off()
 {
-   for (int i=0; i < strip.numPixels(); i++) {
-      strip.setPixelColor(i, 0);
+   for (int i=0; i < NUM_LEDS; i++) {
+      strip_setcolorpixel(i, 0);
     }  
 //    strip_show();   // write all the pixels out
 }
@@ -213,8 +213,8 @@ void all_off()
 
 void set_all(uint32_t color)
 {
-   for (int i=0; i < strip.numPixels(); i++) {
-      strip.setPixelColor(i, color);
+   for (int i=0; i < NUM_LEDS; i++) {
+      strip_setcolorpixel(i, color);
     }    
 }
 
@@ -228,8 +228,8 @@ void set_all(uint32_t color)
 void colorWipe(uint32_t c, uint8_t wait) {
   int i;
   
-  for (i=0; i < strip.numPixels(); i++) {
-      strip.setPixelColor(i, c);
+  for (i=0; i < NUM_LEDS; i++) {
+      strip_setcolorpixel(i, c);
       if(rcv) return;
       strip_show();
       delay_break(wait);
@@ -246,8 +246,8 @@ void rainbow(uint8_t wait) {
   int i, j;
    
   for (j=0; j < 256; j++) {     // 3 cycles of all 256 colors in the wheel
-    for (i=0; i < strip.numPixels(); i++) {
-      strip.setPixelColor(i, Wheel( (i + j) % 255));
+    for (i=0; i < NUM_LEDS; i++) {
+      strip_setcolorpixel(i, Wheel( (i + j) % 255));
     }  
     strip_show();   // write all the pixels out
     delay_break(wait);
@@ -279,13 +279,19 @@ void rainbow(uint8_t wait) {
 
 // HELPERS gonna help
 
-
-
+void strip_setcolorpixel(int pixelnum, uint32_t color)
+{
+ leds[pixelnum]=color; 
+  
+  
+}
 
 void strip_show()
 {
-//  if(!rcv) // set by remote control interrupt
-     strip.show(); 
+  if(!rcv) // set by remote control interrupt
+      FastLED.show();
+     
+     
 
 }
 
@@ -323,7 +329,7 @@ uint32_t gc()
 
 
 
-
+/*
 // Create a 24 bit color value from R,G,B
 uint32_t Color(byte r, byte g, byte b)
 {
@@ -335,7 +341,7 @@ uint32_t Color(byte r, byte g, byte b)
   c |= b;
   return c;
 }
-
+*/
 
 
 
@@ -345,13 +351,13 @@ uint32_t Color(byte r, byte g, byte b)
 uint32_t Wheel(byte WheelPos)
 {
   if (WheelPos < 85) {
-   return Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+   return CRGB(WheelPos * 3, 255 - WheelPos * 3, 0);
   } else if (WheelPos < 170) {
    WheelPos -= 85;
-   return Color(255 - WheelPos * 3, 0, WheelPos * 3);
+   return CRGB(255 - WheelPos * 3, 0, WheelPos * 3);
   } else {
    WheelPos -= 170; 
-   return Color(0, WheelPos * 3, 255 - WheelPos * 3);
+   return CRGB(0, WheelPos * 3, 255 - WheelPos * 3);
   }
 }
 
@@ -397,19 +403,19 @@ void set_global_color(int color)
    global_color=0; // replaced by rc() in gc();
   
  if(color==COLOR_RED)
-   global_color=Color(255,0,0); //r
+   global_color=CRGB(255,0,0); //r
  if(color==COLOR_GREEN)
-   global_color=Color(0,255,0); //g
+   global_color=CRGB(0,255,0); //g
  if(color==COLOR_BLUE)
-   global_color=Color(0,0,255); //b
+   global_color=CRGB(0,0,255); //b
  if(color==COLOR_YELLOW)
-   global_color=Color(255,255,0); //r+g
+   global_color=CRGB(255,255,0); //r+g
  if(color==COLOR_MAGENTA)
-   global_color=Color(255,0,255); //r+b 
+   global_color=CRGB(255,0,255); //r+b 
  if(color==COLOR_TURKIS)
-   global_color=Color(0,255,255); //g+b  
+   global_color=CRGB(0,255,255); //g+b  
  if(color==COLOR_WHITE)
-   global_color=Color(255,255,255); //weiss
+   global_color=CRGB(255,255,255); //weiss
   
  
   

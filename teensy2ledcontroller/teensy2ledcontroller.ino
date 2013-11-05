@@ -1,19 +1,29 @@
+// Uncomment this line if you have any interrupts that are changing pins - this causes the library to be a little bit more cautious
+#define FAST_SPI_INTERRUPTS_WRITE_PINS 1
+// we do some interrupt magic for IR handling in the backgorund..
+
+#include "FastSPI_LED2.h"
 
 
-#include "SPI.h"
-#include "ws2801.h"
 
 
-int NUMLEDS=160;
+// How many leds are in the strip?
+#define NUM_LEDS 20
+
+// Data pin that led data will be written out over
+#define DATA_PIN PIN_B2
+
+// Clock pin only needed for SPI based chipsets when not using hardware SPI
+#define CLOCK_PIN PIN_B1
+
+// This is an array of leds.  One item for each led in your strip.
+CRGB leds[NUM_LEDS];
 
 
-int dataPin   = PIN_B1;   
-int clockPin  = PIN_B2;    
-int buttonPin = PIN_D3;
 
+    
+int buttonPin = PIN_D3;  // should be D0 for furute releases (interrupt..)
 
-// Set the first variable to the NUMBER of pixels. 25 = 25 pixels in a row
-ws2801 strip = ws2801(NUMLEDS, dataPin, clockPin);
 
 
 
@@ -29,7 +39,7 @@ unsigned long rcv=0;
 
 
 
-int current_animation=0;
+int current_animation=4;
 
 
 // ADD YOUR OWN DEFINES HERE.. THERE ARE 4 UNUSED BUTONS
@@ -55,11 +65,29 @@ int current_animation=0;
 void setup()
 {
   
-  Serial.begin(9600);
-  strip.begin();
+  Serial.begin(115200);
+ 
+ LEDS.setBrightness(255);
+ 
+ 
+      // Uncomment one of the following lines for your leds arrangement.
+      // FastLED.addLeds<TM1803, DATA_PIN, RGB>(leds, NUM_LEDS);
+      // FastLED.addLeds<TM1804, DATA_PIN, RGB>(leds, NUM_LEDS);
+      // FastLED.addLeds<TM1809, DATA_PIN, RGB>(leds, NUM_LEDS);
+      //FastLED.addLeds<WS2811, DATA_PIN, RGB>(leds, NUM_LEDS);
+       FastLED.addLeds<WS2812, DATA_PIN, RGB>(leds, NUM_LEDS);
+      // FastLED.addLeds<WS2812B, DATA_PIN, RGB>(leds, NUM_LEDS);
+      // FastLED.addLeds<UCS1903, DATA_PIN, RGB>(leds, NUM_LEDS);
 
-  // Update LED contents, to start they are all 'off'
-  strip.show();
+       //FastLED.addLeds<WS2801, RGB>(leds, NUM_LEDS);
+      // FastLED.addLeds<SM16716, RGB>(leds, NUM_LEDS);
+      // FastLED.addLeds<LPD8806, RGB>(leds, NUM_LEDS);
+
+       //FastLED.addLeds<WS2801, DATA_PIN, CLOCK_PIN, RGB>(leds, NUM_LEDS);
+      // FastLED.addLeds<SM16716, DATA_PIN, CLOCK_PIN, RGB>(leds, NUM_LEDS);
+      // FastLED.addLeds<LPD8806, DATA_PIN, CLOCK_PIN, RGB>(leds, NUM_LEDS);
+ 
+ 
 
   
    // in infrared_async
@@ -77,30 +105,31 @@ void setup()
 
 
 
-
-void show()
-{
- if(!rcv)
-   strip.show();       
-}
-
-
-
-
-
-
-// should be in animations tab but wont compile that way.
-//fuckig arduino..
-
-
 int      colorstepper=1;   //1-255  (the larger the less colors you get from rc()
 
 
 void loop() {
  
+  /*
+     // Move a single white led 
+   for(int whiteLed = 0; whiteLed < NUM_LEDS; whiteLed = whiteLed + 1) {
+      // Turn our current led on to white, then show the leds
+      leds[whiteLed] = CRGB::White;
+
+      // Show the leds (only one of which is set to white, from above)
+      FastLED.show();
+
+      // Wait a little bit
+      delay(100);
+
+      // Turn our current led back to black for the next loop around
+      leds[whiteLed] = CRGB::Black;
+   }
+  
+  */
   
   if(rcv) handle_ir();
-  run_current_animation();
+   run_current_animation();
   
   
 }
@@ -189,8 +218,11 @@ break;
 
 
 case 0xe01f: // -
+
+Serial.println("Setting Animation to: KITT");
  set_global_color(1); //red
 current_animation=ANIM_KITT;
+//rcv=0;
 break;
 
 
